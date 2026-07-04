@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const pool = require('../config/database');
+const { jwtSecret } = require('../config/auth');
 const router = express.Router();
 
 const sanitizeUser = (user) => ({
@@ -166,7 +167,7 @@ router.post('/login', async (req, res) => {
         // Generate token
         const token = jwt.sign(
             { id: user.id, email: user.email, role: user.role },
-            process.env.JWT_SECRET,
+            jwtSecret,
             { expiresIn: '24h' }
         );
 
@@ -189,7 +190,7 @@ router.get('/me', async (req, res) => {
             return res.status(401).json({ message: 'No token provided' });
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, jwtSecret);
         const result = await getCurrentUserById(decoded.id);
 
         if (result.rows.length === 0) {
@@ -211,7 +212,7 @@ router.put('/profile', async (req, res) => {
             return res.status(401).json({ message: 'No token provided' });
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, jwtSecret);
         const { username, full_name, email, phone, profile_image, current_password, new_password } = req.body;
 
         if (!username) {
